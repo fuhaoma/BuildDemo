@@ -1,4 +1,11 @@
+import java.text.SimpleDateFormat
+
 apply plugin: 'com.android.application'
+
+//APP名字
+def appName = "MFH";
+//是否是测试
+def isTest = false;
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -11,10 +18,41 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    //APP配置签名
+    signingConfigs {
+        mySignings {
+            storeFile file("../mfh.jks")
+            keyAlias "Alias"
+            keyPassword "123456"
+            storePassword "123456"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.mySignings
+        }
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.mySignings
+        }
+    }
+
+    //修改apk名字
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def fileName
+            if (isTest) {
+                fileName = appName + "-v" + defaultConfig.versionName + "正式版本" + getTime() + ".apk"
+            } else {
+                fileName = appName + "-v" + defaultConfig.versionName + "测试版本" + getTime() + ".apk"
+            }
+            output.outputFile = new File(output.outputFile.parent, fileName)
+            println("filePath：" + output.outputFile.getPath())
         }
     }
 }
@@ -26,4 +64,10 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
     testCompile 'junit:junit:4.12'
+}
+
+def getTime() {
+    def format = new SimpleDateFormat("MM-dd HHmmss")
+    format.setTimeZone(TimeZone.getDefault())
+    return format.format(new Date())
 }
