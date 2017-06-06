@@ -5,7 +5,7 @@ apply plugin: 'com.android.application'
 //APP名字
 def appName = "MFH";
 //是否是测试
-def isTest = false;
+def isTest = true;
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -19,7 +19,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
-    //APP配置签名
+    //APP配置签名一般不推荐把密码写到这里。
     signingConfigs {
         mySignings {
             storeFile file("../mfh.jks")
@@ -42,18 +42,28 @@ android {
         }
     }
 
-    //修改apk名字
+    //修改apk名字并加上渠道名字
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
             def fileName
             if (isTest) {
-                fileName = appName + "-v" + defaultConfig.versionName + "正式版本" + getTime() + ".apk"
+                fileName = appName + "-v" + defaultConfig.versionName + variant.productFlavors[0].name + "测试版本" + getTime() + ".apk"
             } else {
-                fileName = appName + "-v" + defaultConfig.versionName + "测试版本" + getTime() + ".apk"
+                fileName = appName + "-v" + defaultConfig.versionName + variant.productFlavors[0].name + "正式版本" + getTime() + ".apk"
             }
             output.outputFile = new File(output.outputFile.parent, fileName)
             println("filePath：" + output.outputFile.getPath())
         }
+    }
+
+    //多渠道打包
+    productFlavors {
+        wandoujia {}
+        c360 {}
+        xiaomi {}
+    }
+    productFlavors.all { flavor ->
+        flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
     }
 }
 
